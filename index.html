@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>供应商信息查询终端</title>
+    <link rel="stylesheet" href="css/toolbar.css" type="text/css"/>
+  <!--  <link rel="stylesheet" href="css/jquery.dataTables.min.css" type="text/css"/>-->
+    <link rel="stylesheet" href="css/buttons.dataTables.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/select.dataTables.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/editor.dataTables.css" type="text/css" >
+    <link rel="stylesheet" href="css/dataTables.bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" >
+<!--    <link rel="stylesheet" href="css/bootstrap-theme.min.css" type="text/css" >-->
+</head>
+<body>
+<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="js/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" src="js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="js/dataTables.select.min.js"></script>
+<script type="text/javascript" src="js/dataTables.editor.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=1zYtAyRYrpdtDlDYGC4dfi35"></script>
+<script type="text/javascript" src="js/main_frame.js"></script>
+
+<header></header>
+<dr></dr>
+<!--标题-->
+<div>
+    <br/><br/>
+    <img src="bg/title.png">
+    <br/><br/>
+</div>
+<!--工具栏的DIV-->
+<div class="toolbar" style="background-color:rgba(210, 214, 220, 1);">
+            <div class="inputDiv">
+                <input type="text" name="" id="suggestId" class="inputText" size="50" value="" placeholder="输入地址自动进行搜索">
+            </div>
+            <div id="searchResultPanel" class="searchResultPanel"></div>
+    <div class="tabView">
+        <img src="./icon/a.png"  alt="" class="selectIcon" />
+        <img src="./icon/b.png"  alt="" class="mapIcon" />
+        <img src="./icon/c.png"  alt="" class="tableIcon" />
+    </div>
+</div>
+<!--筛选的DIV-->
+<div id="selectTags" class="selectTags">
+    <div>
+        <span>业务类型：</span>
+    <input type="checkbox" name="" id="a1" class=""/><span>雨伞    </span>
+    <input type="checkbox" name="" id="a2" class=""/><span>帽子    </span>
+    <input type="checkbox" name="" id="a3" class=""/><span>玩具    </span>
+    <input type="checkbox" name="" id="a4" class=""/><span>手机壳  </span>
+    <input type="checkbox" name="" id="a5" class=""/><span>其他    </span>
+    </div>
+    <div>
+        <span>联系状态：</span>
+        <input type="checkbox" name="" id="b1" class=""/><span>未联系  </span>
+        <input type="checkbox" name="" id="b2" class=""/><span>已联系  </span>
+        <input type="checkbox" name="" id="b3" class=""/><span>星标    </span>
+        <input type="checkbox" name="" id="b4" class=""/><span>其他    </span>
+    </div>
+    <br/><br/><br/>
+    <div>
+        <span>公司地址： </span>
+        <input type="checkbox" name="" id="c1" class=""/><span>集美</span>
+        <input type="checkbox" name="" id="c2" class=""/><span>思明</span>
+        <input type="checkbox" name="" id="c3" class=""/><span>湖里</span>
+        <input type="checkbox" name="" id="c4" class=""/><span>翔安</span>
+        <input type="checkbox" name="" id="c5" class=""/><span>其他</span>
+
+    </div>
+<!--    <div style="float: left;margin-top: 5px;margin-left: 56px;margin-right: 40px;border-bottom: 1px dashed silver;">
+        <span>联系状态：</span>
+        <input type="checkbox" name="" id="d1" class=""/><span>未联系  </span>
+        <input type="checkbox" name="" id="d2" class=""/><span>已联系  </span>
+        <input type="checkbox" name="" id="d3" class=""/><span>星标    </span>
+        <input type="checkbox" name="" id="d4" class=""/><span>其他    </span>
+    </div>-->
+
+</div>
+<!--表格的DIV-->
+<div id="container" class="container">
+    <h2></h2>
+    <table id="example" class="table table-striped table-bordered" cellspacing="0" width="100%">
+<!--        <thead>
+        <tr>
+            <th style="width:15px"><input type="checkbox" id='checkAll'></th>
+            <th>ID</th>
+            <th>公司名称</th>
+            <th>联系人</th>
+            <th>状态</th>
+            <th>地址</th>
+            <th>网址</th>
+            <th>地图</th>
+            <th>添加时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>-->
+    </table>
+<!--        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Office</th>
+            <th>Extn.</th>
+            <th>Start date</th>
+            <th>Salary</th>
+        </tr>
+        </thead>
+
+        <tfoot>
+        <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Office</th>
+            <th>Extn.</th>
+            <th>Start date</th>
+            <th>Salary</th>
+        </tr>
+        </tfoot>
+    </table>-->
+    </div>
+<!--地图位置的DIV-->
+<div id="mapContainer" class="mapContainer"></div>
+<!--加载数据显示的DIV-->
+<div id="loading" class="loading">
+    <img src="bg/loading.png" alt=""/>
+</div>
+<div id="loadFail" class="loadFail">
+    <img src="bg/loadFail.png" alt=""/>
+    <img src="bg/loadFail-2.png" alt=""/>
+</div>
+
+<!--<footer></footer>-->
+</body>
+</html>
+
