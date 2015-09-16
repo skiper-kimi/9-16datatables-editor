@@ -28,19 +28,6 @@ $(document).ready(function() {
             resData.data = data.data.posts;
             var dataLength = getJsonLength(data.data.posts);
             for(var i=0;i<dataLength;i++) {
-                var temArr = [];
-                temArr.push("");
-                temArr.push(data.data.posts[i].id);
-                temArr.push(data.data.posts[i].company_name);
-                temArr.push( data.data.posts[i].contact_name);
-                temArr.push(data.data.posts[i].phone);
-                temArr.push(data.data.posts[i].is_contact);
-                temArr.push(data.data.posts[i].address);
-                temArr.push(data.data.posts[i].website);
-                temArr.push( data.data.posts[i].map);
-                temArr.push( data.data.posts[i].description);
-                temArr.push(data.data.posts[i].timestamp);
-                resultData.push(temArr);
                 com_addr.push(data.data.posts[i].address);
                 com_nam.push(data.data.posts[i].company_name);
             }
@@ -93,26 +80,49 @@ $(document).ready(function() {
         });
     }
 
-
     //表格功能
     function createTable(){
-        $("#container h2").html("查询结果");
+
         //表格初始化
         editor = new $.fn.dataTable.Editor({
             ajax: "../a.html",
             table: "#example",
             fields: [
-                {label: "id:", name: "id"},
-                {label: "company_name:", name: "company_name"},
-                {label: "contact_name:", name: "contact_name"},
-                {label: "phone:", name: "phone"},
-                {label: "is_contact:", name: "is_contact"},
-                {label: "address:", name: "address"},
-                {label: "website:", name: "website"},
-                {label: "map:", name:"map"},
-                {label: "description", name: "description"},
-                {label: "time:", name: "time"}
-            ]
+                {label: "ID：", name: "id"},
+                {label: "公司名称：", name: "company_name"},
+                {label: "联系人：", name: "contact_name"},
+                {label: "电话：", name: "phone"},
+                {label: "状态：", name: "is_contact"},
+                {label: "地址：", name: "address"},
+                {label: "网址：", name: "website"},
+                {label: "地图：", name:"map"},
+                {label: "描述：", name: "description"},
+                {label: "添加时间：", name: "time"}
+            ],
+            i18n: {
+                create: {
+                    button: "新增",
+                    title:  "填写新供应商信息",
+                    submit: "创建"
+                },
+                edit: {
+                    button: "编辑",
+                    title:  "编辑供应商信息",
+                    submit: "更新"
+                },
+                remove: {
+                    button: "删除",
+                    title:  "删除供应商信息",
+                    submit: "确认",
+                    confirm: {
+                        _: "您是否确认删除选中的 %d 条记录?",
+                        1: "您是否确认删除选中的此条记录?"
+                    }
+                },
+                error: {
+                    system: "系统发生错误..."
+                }
+            }
         });
         table = $('#example').DataTable({
             "columnDefs": [
@@ -130,23 +140,18 @@ $(document).ready(function() {
                     "targets": [8],
                     "visible": false,
                     "searchable": false
+                },
+                {
+                    "targets": [10],
+                    "visible": false,
+                    "searchable": false
                 }
             ],
-            "data": resultData,
-            // "data":resData,
-            "aoColumns": [
-                {"sTitle": "选择"},
-                {"sTitle": "ID"},
-                {"sTitle": "公司名称"},
-                {"sTitle": "联系人"},
-                {"sTitle": "电话"},
-                {"sTitle": "是否联系"},
-                {"sTitle": "地址"},
-                {"sTitle": "网址"},
-                {"sTitle": "地图"},
-                {"sTitle": "描述"},
-                {"sTitle": "时间"}
-            ],
+            "dom":  'Bfrtip',
+            "ajax":{
+                url:'http://192.168.1.222:5000/api/v1/auth/map?view=all&page=1',
+                dataSrc:'data.posts',
+            },
             "columns": [
                 {
                     data: null,
@@ -154,7 +159,7 @@ $(document).ready(function() {
                     className: 'select-checkbox',
                     orderable: false
                 },
-                {"data": 'id'},
+                {"data": 'id' },
                 {"data": 'company_name'},
                 {"data": 'contact_name'},
                 {"data": 'phone'},
@@ -163,19 +168,21 @@ $(document).ready(function() {
                 {"data": 'website'},
                 {"data": 'map'},
                 {"data": 'description'},
-                {"data": 'time'}
+                {"data": 'timestamp'},
             ],
-            "select": {
+            "buttons": [
+                 { extend: "create", editor: editor },
+                 { extend: "edit",   editor: editor },
+                 { extend: "remove", editor: editor },
+            ],
+            "select":  {
                 style:    'os',
                 selector: 'td:first-child'
             },
-            "buttons": [
-                { extend: "create", editor: editor },
-                { extend: "edit",   editor: editor },
-                { extend: "remove", editor: editor }
-            ],
-            "bLengthChange": false, //改变每页显示数据数量
+            "bLengthChange": false,
+            "bAutoWidth": true,
             "processing": true,
+            "deferRender": true,
             "oLanguage": {
                 "sProcessing": "正在加载中......",
                 "sLengthMenu": "每页显示 _MENU_ 条记录",
@@ -191,35 +198,33 @@ $(document).ready(function() {
                     "sLast": "末页"
                 }
             }
-            /* "bPaginate": true, //翻页功能
-             "bFilter": true, //过滤功能
-             "bSort": false, //排序功能
-             "bInfo": true,//页脚信息
-             "bAutoWidth": true,//自动宽度
-             "sPaginationType":"full_numbers"  //
-             } */
         });
+/*        table.buttons().container()
+            .appendTo( $('.col-sm-6:eq(0)', table.table().container() ) );*/
 
         //点击事件绑定
         $("#example tbody").on("click","tr",function () {
             //选中后高亮显示
             var temp = $("#example").dataTable().api();
-            if ( $(this).hasClass('selected') ) {
+           /* if ( $(this).hasClass('selected') ) {
                 $(this).removeClass('selected');
             }
             else {
                 table.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
-            }
+            }*/
             var data = temp.row(this).data();
-            myGeo.getPoint(data[6], function (point) {
+            myGeo.getPoint(data.address, function (point) {
                 if (point) {
-                    map.centerAndZoom(point,13);
+                    map.centerAndZoom(point,19);
                 }
             }, "厦门市");
 /*             editor.inline( this, {onBlur: 'submit'});*/
-
         });
+        $('#example').on( 'click', 'tbody td:not(:first-child)', function (e) {
+            editor.inline( this );
+        } );
+
     }
 
     function getJsonLength(jsonData){
@@ -276,7 +281,18 @@ $(document).ready(function() {
         myGeo.getPoint(add, function (point) {
             if (point) {
                 var address = new BMap.Point(point.lng, point.lat);
-                addMarker(address, new BMap.Label(nam, {offset: new BMap.Size(20, -10)}));
+                var myLabel = new BMap.Label(nam, {offset: new BMap.Size(20, -10)});
+                myLabel.setTitle(add);
+                myLabel.setStyle({
+                    "color":"silver",
+                    "fontSize":"12px",
+                    "border":"1px",
+                    "height":"19px",
+                    "width":"100px",
+                    "textAlign":"center",
+                    "cursor":"pointer"
+                });
+                addMarker(address, myLabel);
             }
         }, "厦门市");
         // 编写自定义函数,创建标注
@@ -357,93 +373,4 @@ $(document).ready(function() {
 
 
 });
-/*            $.ajax({
- url:'http://192.168.1.110:5000/api/v1/auth/suppiler?view=all&page=1',
- type:'GET',
- dataType:'JSON',
- success: function(data){
- resultData = data;
- }
- });*/
-/*      $('#example').DataTable( {
- "bProcessing": true,
- "bServerSide": true,
- "sAjaxSource": "http://192.168.1.110:5000/api/v1/auth/suppiler?view=all&page=1",
- "sServerMethod": "GET",
- "aoColumns": [
- {"sName":"address"},
- {"sName":"company_name"},
- {"sName":"contract_name"},
- {"sName":"id"},
- {"sName":"is_contract"},
- {"sName":"map"},
- {"sName":"phone"},
- {"sName":"timestamp"},
- {"sName":"website"}
- ],
- "fnServerData": function (sUrl, aoData, fnCallback) {
- $.ajax({
- "url": sUrl,
- "data": aoData,
- "success": fnCallback,
- "dataType": "json",
- "cache": false
- });
- }
- });*/
-/*
- http://www.cnblogs.com/i-blog/p/3641942.html
- http://www.cnblogs.com/i-blog/p/3641942.html
- $("#example").dataTable({
- "bServerSide": true,
- "aoColumns": [
- {"mDataProp":"address"},
- {"mDataProp":"company_name"},
- {"mDataProp":"contract_name"},
- {"mDataProp":"id"},
- {"mDataProp":"is_contract"},
- {"mDataProp":"map"},
- {"mDataProp":"phone"},
- {"mDataProp":"timestamp"},
- {"mDataProp":"website"},
- ],
- "oLanguage":{
- "sLengthMenu": "每页显示 _MENU_ 条记录",
- "sZeroRecords": "没有检索到数据",
- "sInfo": "显示 _START_-_END_ 条数据;共有 _TOTAL_ 条记录",
- "sInfoEmtpy": "没有数据",
- "sProcessing": "正在加载数据...",
- "oPaginate":
- {
- "sFirst": "首页",
- "sPrevious": "上一页",
- "sNext": "下一页",
- "sLast": "尾页"
- }
 
- },
- "sAjaxSource" : "http://192.168.1.110:5000/api/v1/auth/suppiler?view=all&page=1"
- "fnServerData": function ( sUrl, aoData, fnCallback, oSettings ) {
- oSettings.jqXHR = $.ajax( {
- "url":  sUrl,
- "data": aoData,
- "success": function (json) {
- if ( json.sError ) {
- oSettings.oApi._fnLog( oSettings, 0, json.sError );
- }
- $(oSettings.oInstance).trigger('xhr', [oSettings, json]);
- fnCallback( json );
- },
- "dataType": "json",
- "cache": false,
- "type": oSettings.sServerMethod,
- "error": function (xhr, error, thrown) {
- if ( error == "parsererror" ) {
- oSettings.oApi._fnLog( oSettings, 0, "DataTables warning: JSON data from " + "server could not be parsed. This is caused by a JSON formatting error." );
- }
- }
- });
- },
-
-
- });*/

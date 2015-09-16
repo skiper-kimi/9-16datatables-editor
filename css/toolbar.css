@@ -80,13 +80,14 @@ header{
     border-bottom: 1px dashed silver;
 }
 
-.container{
+.tableContainer{
     width: 1300px;
     height:auto;
     margin: 10px auto;
     display: none;
     border-radius: 20px;
-    background-color: rgba(210, 214, 220, 1);
+    border: 2px solid rgba(202, 205, 243, 0.99);
+    background-color:whitesmoke;
 }
 .cell-border{
     background-color: rgba(210, 214, 220, 0.6);
