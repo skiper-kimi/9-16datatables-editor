@@ -85,19 +85,50 @@ $(document).ready(function() {
 
         //表格初始化
         editor = new $.fn.dataTable.Editor({
-            ajax: "../a.html",
+            ajax: {
+                url:"http://192.168.1.222:5000/api/v1/auth/map",
+                type:"POST",
+                dataType:'JSON',
+                data:function ( d ) {
+                    return JSON.stringify( d );
+                },
+            },
             table: "#example",
             fields: [
                 {label: "ID：", name: "id"},
                 {label: "公司名称：", name: "company_name"},
                 {label: "联系人：", name: "contact_name"},
                 {label: "电话：", name: "phone"},
-                {label: "状态：", name: "is_contact"},
                 {label: "地址：", name: "address"},
                 {label: "网址：", name: "website"},
                 {label: "地图：", name:"map"},
                 {label: "描述：", name: "description"},
-                {label: "添加时间：", name: "time"}
+                {label: "添加时间：",
+                    name: "time",
+                    type:"date",
+                    def: function () {
+                        return new Date();
+                    }
+                },
+                {
+                    label: "经营类别：",
+                    name:  "suplier_category",
+                    type: "select",
+                    options: [
+                        { label: '包',  value: '1' },
+                        { label: '雨伞', value: '2' },
+                        { label: '抱枕', value: '3' },
+                    ]
+                },
+                {
+                    label: "状态：",
+                    name:  "is_contact",
+                    type: "select",
+                    options: [
+                        { label: '已联系',  value: 'true' },
+                        { label: '未联系', value: 'false' }
+                    ]
+                }
             ],
             i18n: {
                 create: {
@@ -125,6 +156,7 @@ $(document).ready(function() {
             }
         });
         table = $('#example').DataTable({
+
             "columnDefs": [
                 {
                     "targets": [1],
@@ -132,17 +164,16 @@ $(document).ready(function() {
                     "searchable": false
                 },
                 {
-                    "targets": [8],
+                    "targets": [9],
                     "visible": false,
                     "searchable": false
                 },
                 {
-                    "targets": [8],
-                    "visible": false,
-                    "searchable": false
+                    "targets": [5]
+
                 },
                 {
-                    "targets": [10],
+                    "targets": [11],
                     "visible": false,
                     "searchable": false
                 }
@@ -160,11 +191,12 @@ $(document).ready(function() {
                     orderable: false
                 },
                 {"data": 'id' },
-                {"data": 'company_name'},
-                {"data": 'contact_name'},
-                {"data": 'phone'},
-                {"data": 'is_contact'},
-                {"data": 'address'},
+                {"data": 'company_name',"sWidth":'15%'},
+                {"data": 'contact_name',"sWidth":'7%'},
+                {"data": 'phone',"sWidth":'8%'},
+                {"data": "suplier_category","sWidth":'5%'},
+                {"data": 'is_contact',"sWidth":'5%'},
+                {"data": 'address',"sWidth":'18%'},
                 {"data": 'website'},
                 {"data": 'map'},
                 {"data": 'description'},
@@ -175,12 +207,17 @@ $(document).ready(function() {
                  { extend: "edit",   editor: editor },
                  { extend: "remove", editor: editor },
             ],
+   /*         "searchCols": [
+                null,
+                { "search": "id" },
+                null,
+                { "search": "phone", "escapeRegex": false }
+            ],*/
             "select":  {
                 style:    'os',
-                selector: 'td:first-child'
+
             },
-            "bLengthChange": false,
-            "bAutoWidth": true,
+            "lengthChange": true,
             "processing": true,
             "deferRender": true,
             "oLanguage": {
@@ -197,32 +234,60 @@ $(document).ready(function() {
                     "sNext": "下一页",
                     "sLast": "末页"
                 }
+            },
+
+            "initComplete": function() {
+                this.api().columns().every( function () {
+                    var column = this;
+                    var select = $('<select><option value=""></option></select>')
+                        .appendTo( $(column.footer()).empty() )
+                        .on( 'change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex(
+                                $(this).val()
+                            );
+
+                            column
+                                .search( val ? '^'+val+'$' : '', true, false )
+                                .draw();
+                        } );
+
+                    column.data().unique().sort().each( function ( d, j ) {
+                        select.append( '<option value="'+d+'">'+d+'</option>' )
+                    } );
+                } );
             }
         });
-/*        table.buttons().container()
-            .appendTo( $('.col-sm-6:eq(0)', table.table().container() ) );*/
-
-        //点击事件绑定
+        //事件绑定
         $("#example tbody").on("click","tr",function () {
             //选中后高亮显示
             var temp = $("#example").dataTable().api();
-           /* if ( $(this).hasClass('selected') ) {
-                $(this).removeClass('selected');
-            }
-            else {
-                table.$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-            }*/
             var data = temp.row(this).data();
             myGeo.getPoint(data.address, function (point) {
                 if (point) {
                     map.centerAndZoom(point,19);
                 }
             }, "厦门市");
-/*             editor.inline( this, {onBlur: 'submit'});*/
         });
-        $('#example').on( 'click', 'tbody td:not(:first-child)', function (e) {
-            editor.inline( this );
+        $('#example').on( 'dblclick', 'tbody td:not(:first-child)', function (e) {
+
+            editor.inline(this, {
+                submit: 'allIfChanged',
+                buttons: {
+                    label: '&gt;', fn: function () {
+                        this.submit();
+                    }
+                }
+            });
+        });
+        editor.on( 'preSubmit', function ( e, o, action ) {
+            if ( action !== 'remove' ) {
+                var firstName = editor.field( '' );
+
+                if ( this.inError() ) {
+                    return false;
+                }
+            }
+
         } );
 
     }
@@ -284,11 +349,9 @@ $(document).ready(function() {
                 var myLabel = new BMap.Label(nam, {offset: new BMap.Size(20, -10)});
                 myLabel.setTitle(add);
                 myLabel.setStyle({
-                    "color":"silver",
+                    "border":"1px red solid",
                     "fontSize":"12px",
-                    "border":"1px",
                     "height":"19px",
-                    "width":"100px",
                     "textAlign":"center",
                     "cursor":"pointer"
                 });
@@ -373,4 +436,8 @@ $(document).ready(function() {
 
 
 });
+
+
+
+
 
